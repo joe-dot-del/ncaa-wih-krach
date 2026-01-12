@@ -3,7 +3,7 @@ options(scipen = 999)
 
 games <- read_csv("data/wih-results-2025-26.csv")
 # UPDATE
-as_of <- "2026-01-06"
+as_of <- "2026-01-12"
 
 teams <- sort(unique(c(games$away, games$home)))
 team_info <- read_csv("data/team-info.csv")
@@ -104,6 +104,24 @@ calculate_rrwp <- function(ratings){
   }
   return(round(rrwp, 4))
 }
+
+strength_of_schedule <- results_by_team %>% 
+  mutate(total_games = wins + losses) %>% 
+  left_join(ratings, join_by(team)) %>% 
+  rename(team_rating = rating) %>% 
+  left_join(ratings, join_by(opponent == team)) %>% 
+  rename(opponent_rating = rating) %>% 
+  group_by(team, opponent, team_rating, opponent_rating) %>% 
+  summarize(weighting_factor = total_games / (team_rating + opponent_rating)) %>% 
+  group_by(team) %>% 
+  summarize(strength_of_schedule = round(sum(opponent_rating * weighting_factor/sum(weighting_factor)), 2))
+
+winning_ratio <- results_by_team %>% 
+  group_by(team) %>% 
+  summarize(wins = sum(wins),
+            losses = sum(losses),
+            winning_ratio = wins / losses) %>% 
+  select(team, winning_ratio)
 
 ratings_table <- ratings %>% 
   mutate(rrwp = calculate_rrwp(rating)) %>% 
