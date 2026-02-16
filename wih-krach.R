@@ -186,7 +186,10 @@ ratings_table <- ratings |>
   arrange(desc(rating)) |> 
   mutate(rank = row_number()) |> 
   left_join(team_data, join_by(team)) |> 
-  select(rank, team, conf = conference, krach = rating, rrwp)
+  select(rank, team, conf = conference, krach = rating, rrwp) |> 
+  mutate(conf = conf |> 
+           replace_values("hockey-east" ~ "hea",
+                          "ecac-hockey" ~ "ecac"))
 
 write_csv(ratings_table,
           paste0("output/wih_krach_rankings_", as_of, ".csv"))
