@@ -15,6 +15,7 @@ contest_dates <- schedule_json$data$schedules$games$contestDate |>
   as_tibble() |> 
   separate(value, into = c("month", "day", "year"), sep = "/") |> 
   unite(col = "new_value", c("year", "month", "day"), sep = "/") |> 
+  filter(as.Date(new_value) <= Sys.Date()) |> 
   pull(new_value)
 
 # pre-allocate list of appropriate size
@@ -206,8 +207,7 @@ ratings_table <- ratings |>
   left_join(winning_ratio, join_by(team)) |> 
   left_join(strength_of_schedule, join_by(team)) |> 
   mutate(check = winning_ratio * strength_of_schedule) |> 
-  select(rank, team, conf, krach = rating, rrwp, win_ratio = winning_ratio,
-         sos = strength_of_schedule, check)
+  select(rank, team, conf, krach = rating, rrwp)
 
 write_csv(ratings_table,
           paste0("output/mih_krach_rankings_", as_of, ".csv"))
